@@ -1,0 +1,39 @@
+{% extends 'bootstrap/base.html' %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block styles %}
+    {{ super() }}
+    <style>
+        #submit {
+            display: block;
+            margin: 0 auto;
+        }
+
+        #code {
+            width: 65%;
+        }
+
+        #code-img {
+            position: absolute;
+            right: 3%;
+            top: 230px;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+
+    <div class="col-md-4 col-md-offset-4" style="position: relative;">
+        {% for message in get_flashed_messages() %}
+            <div class="alert alert-warning alert-dismissible" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+                <strong>Warning!</strong>{{ message }}
+            </div>
+        {% endfor %}
+        <h2 align="center" class="text-muted">登录</h2>
+        {{ wtf.quick_form(form) }}
+        <img id="code-img" src="{{ url_for('user.get_code') }}" alt=""
+             onclick="this.src='{{ url_for('user.get_code') }}?'+Math.random()">
+    </div>
+{% endblock %}
