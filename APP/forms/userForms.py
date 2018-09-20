@@ -5,8 +5,9 @@
 
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
-from wtforms.validators import DataRequired, Length, EqualTo, Email
+from wtforms.validators import DataRequired, Length, EqualTo, Email, ValidationError
 from flask_wtf.file import FileAllowed, FileRequired, FileField
+from APP.models import Users
 
 ALLOW_PHOTOS = ['jpg', 'png', 'jpeg', 'bmp']
 
@@ -27,6 +28,29 @@ class UserRegisterForm(FlaskForm):
                                               FileAllowed(ALLOW_PHOTOS, message='无法识别的图片格式')])
     submit = SubmitField(label='注册')
 
+    def validate_username(self, field):
+        '''
+        判断用户是否存在
+        :param field: 字段
+        :return: bool
+        '''
+        user = Users.query.filter_by(username=field.data).first()
+        if user:
+            raise ValidationError(message='该用户名已被注册')
+
+    def validate_email(self, field):
+        '''
+        判断邮箱是否存在
+        :param field: 字段
+        :return: bool
+        '''
+        user = Users.query.filter_by(email=field.data).first()
+        if user:
+            raise ValidationError(message='该邮箱已被注册')
+
+
+
+
 class UserLoginForm(FlaskForm):
     '''
     用户登录表单，用户名，密码，验证码
@@ -36,3 +60,13 @@ class UserLoginForm(FlaskForm):
     password = PasswordField(label='密码', validators=[DataRequired(message='密码不能为空')])
     code = StringField(label='验证码', validators=[DataRequired(message='请输入验证码')])
     submit = SubmitField(label='登录')
+
+    def validate_username(self, field):
+        '''
+        判断用户是否存在
+        :param field: 字段
+        :return: bool
+        '''
+        user = Users.query.filter_by(username=field.data).first()
+        if not user:
+            raise ValidationError(message='该用户名不存在')

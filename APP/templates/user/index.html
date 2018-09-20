@@ -27,11 +27,11 @@
         <!-- The justified navigation menu is meant for single line per list item.
              Multiple lines will require custom code not provided by Bootstrap. -->
         <div class="masthead">
-            {% if username %}
+            {% if current_user.is_authenticated %}
                 <div class="photo"><img
-                        src="{{ url_for('static', filename='image/' + photo) }}"></div>
+                        src="{{ url_for('static', filename='image/') }}{{ current_user.photo }}"></div>
                 <h3 class="text-muted" style="line-height: 32px;" >
-                    {{ username }}
+                    {{ current_user.username }}
                     <a class="quit-button" href="{{ url_for('user.user_logout') }}">注销</a>
                 </h3>
 

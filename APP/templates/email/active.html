@@ -1,0 +1,3 @@
+<h1>尊敬的{{ username }}</h1>
+<p>欢迎注册本网站<a href="{{ url_for('user.user_active', token=token, _external=True) }}">点击激活</a></p>
+<p>如链接无效请复制以下链接到地址栏 {{ url_for('user.user_active',token=token,_external=True)}} </p>

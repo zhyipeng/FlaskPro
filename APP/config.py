@@ -25,12 +25,22 @@ class Config(object):
     # 自动提交
     SQLALCHEMY_COMMIT_ON_TEARDOWN = True
 
+    # 邮件服务器
+    MAIL_SERVER = 'smtp.aliyun.com'
+    MAIL_USERNAME = 'zhyipeng@aliyun.com'
+    # MAIL_PASSWORD = os.getenv('MAIL_PASSWORD')
+    MAIL_PASSWORD = 'Zhang789'
+
+    # 调试模式
+    DEBUG = True
+    DEBUG_TB_INTERCEPT_REDIRECTS = False
+
 
 class DevelopmentConfig(Config):
     '''
     开发环境配置
     '''
-    SQLALCHEMY_DATABASE_URI = 'mysql://root:root@127.0.0.1:3306/flask'
+    SQLALCHEMY_DATABASE_URI = 'mysql://root:root@127.0.0.1:3306/flaskpro'
     pass
 
 

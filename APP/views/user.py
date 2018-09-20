@@ -3,6 +3,7 @@
 # @Author  : zhyipeng
 # @File    : userModel.py
 import os
+import time
 import uuid
 
 from flask import Blueprint, render_template, redirect, url_for, make_response, flash, request, current_app
@@ -12,35 +13,41 @@ from PIL import Image, ImageFont, ImageFilter, ImageDraw
 import random
 from io import BytesIO
 from APP.models import Users
-from werkzeug.security import generate_password_hash, check_password_hash
+# from werkzeug.security import generate_password_hash, check_password_hash
+from flask_login import logout_user, login_user, login_required
+from APP.email import send_mail
 
 user = Blueprint('user', __name__)
 code_str = ''
 
+'''
 @user.route('/index/')
 def user_index():
-    '''
-    首页视图
-    :return:
-    '''
     username = request.cookies.get('username')
     photo = request.cookies.get('photo')
 
     return render_template('user/index.html', username=username, photo=photo)
+'''
 
+@user.route('/index/')
+def user_index():
+    return render_template('user/index.html')
 
+'''
 @user.route('/logout/')
 def user_logout():
-    '''
-    注销
-    :return:
-    '''
     resp = redirect(url_for('user.user_index'))
     resp.delete_cookie('username')
     resp.delete_cookie('photo')
     return resp
+'''
 
+@user.route('/logout/')
+def user_logout():
+    logout_user()
+    return redirect(url_for('user.user_index'))
 
+'''
 @user.route('/login/', methods=['GET', 'POST'])
 def user_login():
 
@@ -65,19 +72,35 @@ def user_login():
             else:
                 flash("用户名或密码错误")
     return render_template('user/login.html', form=form)
+'''
 
 
+@user.route('/login/', methods=['GET', 'POST'])
+def user_login():
+    form = UserLoginForm()
+    if form.validate_on_submit():
+        code = form.code.data
+        global code_str
+        if code.lower() == code_str.lower():
+            username = form.username.data
+            password = form.password.data
+            users = Users.query.filter(Users.username == username).first()
+            if users:
+                if users.check_password(password):
+                    # 登录匹配，保存用户
+                    login_user(users)
 
+                    resp = redirect(url_for("user.user_index"))
+                    return resp
+                else:
+                    flash("用户名或密码错误")
+            else:
+                flash("用户名或密码错误")
+    return render_template('user/login.html', form=form)
 
-
-
-
+'''
 @user.route('/register/', methods=['GET', 'POST'])
 def user_register():
-    '''
-    用户注册视图
-    :return:
-    '''
 
     form = UserRegisterForm()
 
@@ -128,6 +151,67 @@ def user_register():
             flash('验证码错误')
 
     return render_template('user/register.html', form=form)
+'''
+
+@user.route('/register/', methods=['GET', 'POST'])
+def user_register():
+
+    form = UserRegisterForm()
+
+    if form.validate_on_submit():
+        username = form.username.data
+        password = form.password.data
+        photo = form.photo.data
+        code = form.code.data
+        email = form.email.data
+
+        # 验证通过
+        global code_str
+        if code.lower() == code_str.lower():
+            user = Users(username=username, password=password, email=email)
+            suffix = os.path.splitext(photo.filename)[1]
+            affix = str(uuid.uuid4())
+            new_filename = affix + suffix
+            photos.save(photo, name=new_filename)
+            # 压缩
+            img_path = os.path.join(current_app.config['UPLOADED_PHOTOS_DEST'], new_filename)
+            img = Image.open(img_path)
+            img.thumbnail((64, 64))
+            img.save(img_path)
+
+            user.photo = new_filename
+
+            db.session.add(user)
+            db.session.commit()
+
+            token = user.generate_token()
+            # 发送激活邮件
+            send_mail(subject='用户激活',
+                      recipients=[email],
+                      email_temp='active',
+                      username=username,
+                      token=token
+                      )
+            flash('激活邮件已发送至您的邮箱，请点击邮件中的链接已完成激活')
+
+        else:
+            flash('验证码错误')
+
+    return render_template('user/register.html', form=form)
+
+@user.route('/active/<token>')
+def user_active(token):
+    '''
+    激活链接
+    :param token: 会话
+    :return:
+    '''
+    if Users.user_active(token):
+        flash('激活成功，即将跳转登录界面')
+        time.sleep(2)
+        return redirect(url_for('user.user_login'))
+    else:
+        return '激活失败'
 
 
 @user.route('/get_code/')

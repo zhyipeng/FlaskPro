@@ -6,7 +6,15 @@
     <style>
         #submit {
             display: block;
-            margin: 0 auto;
+            {#margin: 0 auto;#}
+            position: relative;
+            left: 80px;
+        }
+        #register{
+            display: block;
+            position: absolute;
+            right: 80px;
+            bottom: 0;
         }
 
         #code {
@@ -16,7 +24,7 @@
         #code-img {
             position: absolute;
             right: 3%;
-            top: 230px;
+            top: 220px;
         }
     </style>
 {% endblock %}
@@ -35,5 +43,6 @@
         {{ wtf.quick_form(form) }}
         <img id="code-img" src="{{ url_for('user.get_code') }}" alt=""
              onclick="this.src='{{ url_for('user.get_code') }}?'+Math.random()">
+        <a id="register" class="btn btn-default" href="{{ url_for('user.user_register') }}">注册</a>
     </div>
 {% endblock %}
